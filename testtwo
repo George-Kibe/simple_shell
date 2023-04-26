@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Simple shell program that reads user input and executes commands.
+
+# Define the prompt string.
+PROMPT='#cisfun$ '
+
+# Define the exit status for the shell.
+exit_status=0
+
+# Define the shell loop.
+while true; do
+  # Print the prompt and read user input.
+  printf "$PROMPT"
+  read input
+
+  # Check if the user entered a command.
+  if [[ -n "$input" ]]; then
+    # Split the input into command and arguments.
+    command=$(echo "$input" | awk '{print $1}')
+    args=$(echo "$input" | awk '{$1=""; print $0}')
+
+    # Check if the command is a built-in.
+    case "$command" in
+      exit)
+        # Get the exit status from the arguments, if provided.
+        exit_args=$(echo "$args" | awk '{$1=$1;print}')
+        if [[ -n "$exit_args" ]]; then
+          exit_status=$exit_args
+        fi
+        # Exit the shell with the exit status.
+        exit $exit_status
+        ;;
+      env)
+        # Print the current environment.
+        env
+        ;;
+      *)
+        # Search the PATH for the command.
+        IFS=':' read -ra path_dirs <<<"$PATH"
+        found_command=false
+        for dir in "${path_dirs[@]}"; do
+          path="$dir/$command"
+          if [[ -x "$path" ]]; then
+            found_command=true
+            # Execute the command with the arguments.
+            "$path" $args
+            break
+          fi
+        done
+        # Print an error message if the command wasn't found.
+        if [[ "$found_command" == false ]]; then
+          printf "Command not found: %s\n" "$command"
+        fi
+        ;;
+    esac
+  fi
+done
+
