@@ -1,0 +1,14 @@
+#!/bin/bash
+
+while true; do
+    read -p "$ " command
+    if [[ "$command" == "" ]]; then
+        continue
+    fi
+    if ! command -v "$command" &> /dev/null; then
+        echo "Error: Command not found"
+        continue
+    fi
+    "$command"
+done
+
